@@ -1,0 +1,21 @@
+{
+  "name": "desocial",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "ethers": "^5.5.1"
+  },
+  "devDependencies": {
+    "concurrently": "^6.4.0",
+    "ganache-cli": "^6.12.2"
+  },
+  "scripts": {
+    "test": "concurrently --kill-others \"ganache-cli -i=\"5777\"\" \"truffle test\" --hide 0"
+  },
+  "author": "",
+  "license": "ISC"
+}

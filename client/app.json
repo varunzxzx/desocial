@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "deSocial",
+    "slug": "deSocial",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logos/logo_white_square.png",
+    "splash": {
+      "image": "./assets/logos/full_logo_white.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logos/logo_white_square.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "desocial.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

@@ -1,16 +1,28 @@
 import React, { useState } from "react";
-import { Text, Button, Image } from "react-native-ui-lib";
+import { Text, Button, Image, TextField } from "react-native-ui-lib";
 import Layout from "../component/Layout";
 import { launchImageLibrary } from "react-native-image-picker";
 import { useMoralisFile } from "react-moralis";
 import { useMoralisDapp } from "../providers/MoralisDappProvider/MoralisDappProvider";
+import { ethers } from "ethers";
+import { parseEther } from "@ethersproject/units";
 
 export default function CreateNFT(props) {
-  const { nFTContract, sendTransaction } = useMoralisDapp();
+  const {
+    nFTContract,
+    sendTransaction,
+    nFTContractInterface,
+    nFTContractAddress,
+    nFTMarketContract,
+  } = useMoralisDapp();
   const { error, isUploading, moralisFile, saveFile } = useMoralisFile();
   const [fileUrl, setFileUrl] = useState(null);
-  const [name, setName] = useState("Varun's Unique NFT");
-  const [description, setDescription] = useState("Yes, it is the coolest NFT");
+  const [name, onChangeName] = useState(null);
+  const [description, onChangeDescription] = useState(null);
+  const [price, onChangePrice] = useState(null);
+  const [transaction, setTransaction] = useState(null);
+
+  const user = props.route.params.user;
 
   const handleChoosePhoto = () => {
     launchImageLibrary({ includeBase64: true }, async (response) => {
@@ -40,7 +52,7 @@ export default function CreateNFT(props) {
       description,
       image: fileUrl,
     };
-    const res = await saveFile(
+    const nFTRes = await saveFile(
       "metadata.json",
       { base64: Buffer.from(JSON.stringify(data)).toString("base64") },
       {
@@ -48,18 +60,35 @@ export default function CreateNFT(props) {
         saveIPFS: true,
       }
     );
-    const NFTUrl = res.ipfs();
+    const NFTUrl = nFTRes.ipfs();
     // Generate NFT
-    const transaction = await nFTContract.populateTransaction.createToken(
-      NFTUrl
+    let transaction = await nFTContract.populateTransaction.createToken(NFTUrl);
+    let tx = await sendTransaction(transaction);
+    const decodedTx = nFTContractInterface.parseLog(tx.logs[0]);
+    const event = decodedTx.args;
+
+    const tokenId = event[2].toNumber();
+    const NFTPrice = ethers.utils.parseUnits(price, "ether");
+    let listingPrice = await nFTMarketContract.getListingPrice();
+    // Create market item
+    console.log(user.id, typeof user.id);
+    transaction = await nFTMarketContract.populateTransaction.createMarketItem(
+      ethers.utils.getAddress(nFTContractAddress),
+      tokenId,
+      NFTPrice,
+      user.id.toNumber(),
+      { value: listingPrice }
     );
-    const res1 = await sendTransaction(transaction);
-    console.log(res1);
+    console.log(transaction);
+    setTransaction(transaction);
   };
+
+  async function createMarketItem() {
+    await sendTransaction(transaction);
+  }
 
   return (
     <Layout>
-      <Text>Create NFT</Text>
       {fileUrl && (
         <Image
           style={{
@@ -79,10 +108,33 @@ export default function CreateNFT(props) {
           label="Upload photo"
         />
       )}
+      <TextField
+        placeholder="Spooky kid...."
+        title="Enter name"
+        onChangeText={(text) => onChangeName(text)}
+        value={name}
+      />
+      <TextField
+        placeholder="Neque porro quisquam est ...."
+        title="Enter description"
+        onChangeText={(text) => onChangeDescription(text)}
+        value={description}
+      />
+      <TextField
+        placeholder="e.g. 1.52"
+        title="Enter price(in eth)"
+        onChangeText={(text) => onChangePrice(text)}
+        value={price}
+      />
       <Button
         title="Create NFT"
         onPress={createNFT}
         label="Create NFT"
+      ></Button>
+      <Button
+        title="Create Market Item"
+        onPress={createMarketItem}
+        label="Create Market Item"
       ></Button>
     </Layout>
   );

@@ -17,6 +17,8 @@ function MoralisDappProvider({ children }) {
   const [nFTContract, setNFTContract] = useState();
   const [nFTMarketContract, setNFTMarketContract] = useState();
   const [provider, setProvider] = useState();
+  const [nFTContractInterface, setNFTContractInterface] = useState();
+  const [nFTContractAddress, setNFTContractAddress] = useState();
 
   const connector = useWalletConnect();
 
@@ -61,6 +63,8 @@ function MoralisDappProvider({ children }) {
         provider
       );
 
+      const nFTContractInterface = new ethers.utils.Interface(NFTContract.abi);
+
       const nFTMarketContract = new ethers.Contract(
         NFTMarketContract.networks[chainId].address,
         NFTMarketContract.abi,
@@ -71,6 +75,8 @@ function MoralisDappProvider({ children }) {
       setNFTContract(nFTContract);
       setNFTMarketContract(nFTMarketContract);
       setProvider(provider);
+      setNFTContractInterface(nFTContractInterface);
+      setNFTContractAddress(NFTContract.networks[chainId].address);
     }
     if (!provider) init();
   }, [provider]);
@@ -79,13 +85,13 @@ function MoralisDappProvider({ children }) {
     const txFinal = {
       ...tx,
       from: walletAddress,
-      gasPrice: "0x0218711a00",
-      nonce: "0x0114",
     };
 
     if (tx.value) {
       txFinal["value"] = tx.value.toHexString();
     }
+
+    console.log(txFinal);
 
     const txHash = await connector.sendTransaction(txFinal);
     return await provider.waitForTransaction(txHash);
@@ -100,6 +106,8 @@ function MoralisDappProvider({ children }) {
         userContract,
         nFTContract,
         nFTMarketContract,
+        nFTContractInterface,
+        nFTContractAddress,
       }}
     >
       {children}

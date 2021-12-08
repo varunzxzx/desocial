@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import { FlatList, StyleSheet } from "react-native";
 import {
   Text,
@@ -10,9 +10,11 @@ import {
   Colors,
   Button,
 } from "react-native-ui-lib";
+import { ethers } from "ethers";
+import { useMoralisDapp } from "../providers/MoralisDappProvider/MoralisDappProvider";
 import Layout from "../component/Layout";
 
-import { posts as users } from "../constants/sample-data";
+import getProfilePic from "../utils/getProfilePic";
 
 const searchIcon = require("../assets/search.png");
 
@@ -21,19 +23,10 @@ const LEADING_ICON = {
   style: { marginRight: Spacings.s1, width: 30, height: 30 },
 };
 
-const styles = StyleSheet.create({
-  border: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.grey70,
-  },
-  text: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-});
-
-class Search extends Component {
-  renderRow(row, id) {
+export default function Search(props) {
+  const [users, setUsers] = useState([]);
+  const { userContract } = useMoralisDapp();
+  function renderRow(row, id) {
     return (
       <View key={id}>
         <ListItem style={styles.border}>
@@ -45,11 +38,13 @@ class Search extends Component {
                 resizeMode: "contain",
                 borderRadius: 10500,
               }}
-              source={row.profile_pic}
+              source={getProfilePic()}
             />
           </ListItem.Part>
           <ListItem.Part middle paddingL-10>
-            <Text style={styles.text}>{row.name}</Text>
+            <Text style={styles.text}>
+              {ethers.utils.parseBytes32String(row.name)}
+            </Text>
           </ListItem.Part>
           <ListItem.Part right>
             <Button
@@ -63,20 +58,36 @@ class Search extends Component {
     );
   }
 
-  keyExtractor = (item) => item.name;
+  const keyExtractor = (item) => item.name;
 
-  render() {
-    return (
-      <Layout>
-        <TextField leadingIcon={LEADING_ICON} placeholder="Search..." />
-        <FlatList
-          data={users}
-          renderItem={({ item, index }) => this.renderRow(item, index)}
-          keyExtractor={this.keyExtractor}
-        />
-      </Layout>
-    );
-  }
+  useEffect(() => {
+    async function fetchUsers() {
+      const users = await userContract.fetchAllUsers();
+      setUsers(users);
+    }
+
+    fetchUsers();
+  }, []);
+
+  return (
+    <Layout>
+      <TextField leadingIcon={LEADING_ICON} placeholder="Search..." />
+      <FlatList
+        data={users}
+        renderItem={({ item, index }) => renderRow(item, index)}
+        keyExtractor={keyExtractor}
+      />
+    </Layout>
+  );
 }
 
-export default Search;
+const styles = StyleSheet.create({
+  border: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.grey70,
+  },
+  text: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+});

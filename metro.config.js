@@ -1,10 +1,28 @@
-const extraNodeModules = require('node-libs-browser');
+const extraNodeModules = require("node-libs-browser");
+const { getDefaultConfig } = require("expo/metro-config");
 
-module.exports = {
-  resolver: {
-    extraNodeModules,
-  },
-  transformer: {
-    assetPlugins: ['expo-asset/tools/hashAssetFiles'],
-  },
-};
+// module.exports = {
+//   resolver: {
+//     extraNodeModules,
+//   },
+//   transformer: {
+//     assetPlugins: ['expo-asset/tools/hashAssetFiles'],
+//   },
+// };
+
+module.exports = (async () => {
+  const {
+    resolver: { sourceExts, assetExts },
+  } = await getDefaultConfig(__dirname);
+  return {
+    transformer: {
+      babelTransformerPath: require.resolve("react-native-svg-transformer"),
+      assetPlugins: ["expo-asset/tools/hashAssetFiles"],
+    },
+    resolver: {
+      assetExts: assetExts.filter((ext) => ext !== "svg"),
+      sourceExts: [...sourceExts, "svg"],
+      extraNodeModules,
+    },
+  };
+})();

@@ -25,10 +25,20 @@ contract NFTMarket is ReentrancyGuard {
         address payable seller;
         address payable owner;
         uint256 price;
+        bool isAuction;
+        uint256 sellDate;
         bool sold;
     }
 
+    struct Bid {
+        uint256 itemId;
+        uint256 bid;
+        address buyer;
+    }
+
     mapping(uint256 => MarketItem) private idToMarketItem;
+
+    mapping(uint256 => Bid[]) private idToBid;
 
     event MarketItemCreated(
         uint256 indexed itemId,
@@ -51,7 +61,9 @@ contract NFTMarket is ReentrancyGuard {
         address nftContract,
         uint256 tokenId,
         uint256 price,
-        uint256 sellerId
+        uint256 sellerId,
+        bool isAuction,
+        uint256 sellDate
     ) public payable nonReentrant {
         require(price > 0, "Price must be at least 1 wei");
         require(
@@ -70,6 +82,8 @@ contract NFTMarket is ReentrancyGuard {
             payable(msg.sender),
             payable(address(0)),
             price,
+            isAuction,
+            sellDate,
             false
         );
 
@@ -107,6 +121,57 @@ contract NFTMarket is ReentrancyGuard {
         idToMarketItem[itemId].sold = true;
         _itemsSold.increment();
         payable(owner).transfer(listingPrice);
+    }
+
+    function createBid(
+        uint256 itemId,
+        uint256 bid,
+        address buyer
+    ) public payable returns (Bid[] memory) {
+        require(msg.value == bid, "Value is less than the bidding price");
+        Bid[] memory bids = idToBid[itemId];
+        MarketItem memory item = idToMarketItem[itemId];
+        if (bids.length > 0) {
+            require(
+                bid > bids[bids.length - 1].bid,
+                "Bid is less than last bid."
+            );
+        } else {
+            require(bid >= item.price, "Bid is less than min. price");
+        }
+
+        idToBid[itemId].push(Bid(itemId, bid, buyer));
+
+        return idToBid[itemId];
+    }
+
+    function createBidSale(uint256 itemId) public {
+        Bid[] memory bids = idToBid[itemId];
+        MarketItem memory item = idToMarketItem[itemId];
+        require(item.sold == false, "Item already sold");
+        require(item.sellDate >= block.timestamp, "Auction has not ended yet");
+        // sell to highest bidder
+        Bid memory highestBid = bids[bids.length - 1];
+        item.seller.transfer(highestBid.bid);
+        IERC721(item.nftContract).transferFrom(
+            address(this),
+            highestBid.buyer,
+            item.tokenId
+        );
+        idToMarketItem[itemId].owner = payable(highestBid.buyer);
+        idToMarketItem[itemId].sold = true;
+        _itemsSold.increment();
+        payable(owner).transfer(listingPrice);
+
+        // return the money to other bidders
+        for (uint256 i = 0; i < bids.length - 2; i++) {
+            Bid memory currBid = bids[i];
+            payable(currBid.buyer).transfer(currBid.bid);
+        }
+    }
+
+    function fetchBids(uint256 itemId) public view returns (Bid[] memory) {
+        return idToBid[itemId];
     }
 
     /* Returns all unsold market items */

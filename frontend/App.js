@@ -8,25 +8,7 @@ import { useWalletConnect } from "./WalletConnect";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { LogBox } from "react-native";
-
-import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
-import SplashScreen from "./Components/SplashScreen";
-import CryptoAuth from "./Components/CryptoAuth";
-import RecentTransactions from "./Components/RecentTransactions/RecentTransactions";
-import Assets from "./Components/Assets/Assets";
-import Transfer from "./Components/Transfer/Transfer";
-// import Profile from "./Components/Profile/Profile";
-import Header from "./Components/Header";
-import NFTAssets from "./Components/NFT/NFTAssets";
-
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import {
-  faCreditCard,
-  faCoins,
-  faUser,
-  faPaperPlane,
-  faRocket,
-} from "@fortawesome/free-solid-svg-icons";
+import { default as AntIcon } from "react-native-vector-icons/AntDesign";
 
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -162,7 +144,7 @@ function getHeaderTitle(route) {
 //   );
 // }
 import { ethers } from "ethers";
-
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   StyleSheet,
   View,
@@ -171,6 +153,7 @@ import {
   Alert,
   Button,
 } from "react-native";
+
 import { useMoralisDapp } from "./providers/MoralisDappProvider/MoralisDappProvider";
 const MyTheme = {
   ...DefaultTheme,
@@ -190,7 +173,7 @@ function App(props) {
   const walletAddress = moralisUser.get("ethAddress");
 
   const signup = async () => {
-    const { userContract } = useMoralisDapp();
+    const { userContract, sendTransaction } = useMoralisDapp();
     let data;
     try {
       data = await userContract.fetchUserByAddress({
@@ -201,8 +184,8 @@ function App(props) {
       // User not found
       console.log("user not found");
       const transaction = await userContract.populateTransaction.signup(
-        ethers.utils.formatBytes32String("Varun"),
-        "Yoi Boyyiiii!!"
+        ethers.utils.formatBytes32String("Jeba"),
+        "NFT Designer"
       );
       data = await sendTransaction(transaction, walletAddress);
       console.log("2", data);
@@ -218,29 +201,73 @@ function App(props) {
     moralisUser,
     user,
   };
+
+  function MyStack() {
+    return (
+      <Stack.Navigator
+        initialRouteName="Profile"
+        screenOptions={{ headerShown: false, tabBarShowLabel: false }}
+      >
+        <Stack.Screen
+          name="Profile"
+          component={Profile}
+          initialParams={{ ...initialParams }}
+        />
+        <Stack.Screen
+          name="CreateNFT"
+          component={CreateNFT}
+          initialParams={{ ...initialParams }}
+        />
+      </Stack.Navigator>
+    );
+  }
+
   return (
     <NavigationContainer theme={MyTheme}>
-      <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Navigator
+        screenOptions={{ headerShown: false, tabBarShowLabel: false }}
+      >
         <Tab.Screen
           initialParams={{ ...initialParams }}
           name="Home"
           component={Home}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <AntIcon name="home" size={size} color={color} />
+            ),
+          }}
         />
         <Tab.Screen
           initialParams={{ ...initialParams }}
           name="Search"
           component={Search}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <AntIcon name="search1" size={size} color={color} />
+            ),
+          }}
         />
         <Tab.Screen
           initialParams={{ ...initialParams }}
-          name="Profile"
-          component={Profile}
+          name="MyStack"
+          component={MyStack}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <AntIcon name="user" size={size} color={color} />
+            ),
+          }}
         />
-        <Tab.Screen
+        {/* <Tab.Screen
           initialParams={{ ...initialParams }}
           name="CreateNFT"
-          component={CreateNFT}
-        />
+          component={MyStack}
+          options={{
+            tabBarShowLabel: false,
+            tabBarIcon: ({ color, size }) => (
+              <AntIcon name="pluscircleo" size={size} color={color} />
+            ),
+          }}
+        /> */}
       </Tab.Navigator>
     </NavigationContainer>
   );
@@ -283,7 +310,11 @@ export default function () {
   }, [isAuthenticated, Moralis]);
 
   if (isAuthenticated) {
-    return <App user={user} web3={web3} connector={connector} />;
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <App user={user} web3={web3} connector={connector} />
+      </GestureHandlerRootView>
+    );
   }
   return <Button title="Connect" onPress={handleCryptoLogin} />;
 }

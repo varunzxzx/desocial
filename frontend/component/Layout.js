@@ -1,5 +1,10 @@
 import React, { Component } from "react";
-import { ScrollView, StatusBar } from "react-native";
+import {
+  ScrollView,
+  StatusBar,
+  RefreshControl,
+  SafeAreaView,
+} from "react-native";
 import {
   View,
   Assets,
@@ -19,52 +24,61 @@ Assets.loadAssetsGroup("logos", {
 const styles = {
   dialog: {
     backgroundColor: Colors.white,
-    height: "95%"
-  }
-}
+    height: "95%",
+  },
+};
 
 class Layout extends Component {
   constructor(props) {
     super(props);
 
-    this.createNFT = this.createNFT.bind(this)
+    this.createNFT = this.createNFT.bind(this);
   }
 
   createNFT() {
-    this.props.navigation.navigate("CreateNFT");
+    this.props.navigation.navigate("MyStack", { screen: "CreateNFT" });
   }
 
   render() {
     return (
-      <ScrollView>
-        <View row spread>
-          <View>
-            <Image
-              style={{
-                width: 120,
-                resizeMode: "contain",
-                height: 30,
-                marginLeft: 10,
-              }}
-              assetName="full_logo_white"
-              assetGroup="logos"
+      <SafeAreaView>
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={this.props.refreshing}
+              onRefresh={this.props.onRefresh}
             />
+          }
+        >
+          <View row spread>
+            <View>
+              <Image
+                style={{
+                  width: 120,
+                  resizeMode: "contain",
+                  height: 30,
+                  marginLeft: 10,
+                }}
+                assetName="full_logo_white"
+                assetGroup="logos"
+              />
+            </View>
+            <View marginR-10>
+              <Icon
+                name="plussquareo"
+                size={30}
+                solid
+                onPress={this.createNFT}
+              />
+            </View>
           </View>
-          <View marginR-10>
-            <Icon
-              name="plussquareo"
-              size={30}
-              solid
-              onPress={this.createNFT}
-            />
-          </View>
-        </View>
-        <View margin-10>{this.props.children}</View>
-        {/* <StatusBar hidden={true} /> */}
-        {/* <Dialog visible={dialogOpen} onDismiss={this.toggleDialog} containerStyle={styles.dialog}>
+          <View margin-10>{this.props.children}</View>
+          {/* <StatusBar hidden={true} /> */}
+          {/* <Dialog visible={dialogOpen} onDismiss={this.toggleDialog} containerStyle={styles.dialog}>
           <CreateNFT />
         </Dialog> */}
-      </ScrollView>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 }

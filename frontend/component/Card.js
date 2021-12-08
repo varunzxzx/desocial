@@ -1,8 +1,18 @@
 import React, { Component } from "react";
-import { View, Text, Card, Icon, Image, Button } from "react-native-ui-lib";
+import {
+  View,
+  Text,
+  Card,
+  Icon,
+  Image,
+  Button,
+  PageControlPosition,
+} from "react-native-ui-lib";
+import { ImageBackground } from "react-native";
 
 import { default as FaIcon } from "react-native-vector-icons/FontAwesome";
 import { default as AntIcon } from "react-native-vector-icons/AntDesign";
+import getProfilePic from "../utils/getProfilePic";
 
 const wallet_logo = require("../assets/wallet.png");
 
@@ -12,11 +22,28 @@ class MyCard extends Component {
 
     this.state = {
       post: this.props.post,
+      width: 0,
+      height: 0,
     };
   }
 
+  componentDidMount() {
+    Image.getSize(this.state.post.image, (width, height) => {
+      if (width > height) {
+        height = 170;
+        width = 380;
+      } else {
+        if (height > 400) {
+          height = 400;
+          width = 200;
+        }
+      }
+      this.setState({ width, height });
+    });
+  }
+
   render() {
-    const { post } = this.state;
+    const { post, width, height } = this.state;
     if (!post) return <Text>Loading...</Text>;
     return (
       <View marginB-10>
@@ -29,7 +56,7 @@ class MyCard extends Component {
                 resizeMode: "contain",
                 borderRadius: 10500,
               }}
-              source={post.profile_pic}
+              source={getProfilePic()}
             />
             <Text
               style={{
@@ -39,18 +66,29 @@ class MyCard extends Component {
                 fontWeight: "bold",
               }}
             >
-              {post.name}
+              {post.sellerName}
             </Text>
           </View>
-          <Card.Section
-            imageSource={post.post}
-            imageStyle={{
-              width: "100%",
-              height: 300,
-              resizeMode: "contain",
-              borderWidth: 1,
-            }}
-          />
+          <ImageBackground
+            source={{ uri: post.image }}
+            resizeMode="cover"
+            style={{ justifyContent: "center" }}
+            blurRadius={5}
+          >
+            <Card.Section
+              center
+              imageSource={{
+                uri: post.image,
+              }}
+              imageStyle={{
+                height,
+                width,
+                resizeMode: "contain",
+                borderWidth: 1,
+              }}
+            />
+          </ImageBackground>
+
           <View row padding-10 paddingL-15>
             <FaIcon name="heart-o" size={30} solid />
             <AntIcon
@@ -71,7 +109,7 @@ class MyCard extends Component {
                   width: 30,
                   resizeMode: "contain",
                   height: 30,
-                  marginLeft: 160,
+                  marginLeft: 150,
                 }}
                 assetName="eth_logo"
                 assetGroup="logos"
@@ -89,11 +127,11 @@ class MyCard extends Component {
               >
                 {post.name}{" "}
               </Text>
-              Neque porro quisquam est qui dolorem ipsum quia dolor sit amet,
-              consectetur, adipisci velit
+              {post.description}
             </Text>
           </View>
           <Button
+            onPress={() => this.props.buyNFT(post)}
             borderRadius={10}
             backgroundColor="#6356E5"
             style={{

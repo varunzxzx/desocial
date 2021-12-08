@@ -108,6 +108,7 @@ function MoralisDappProvider({ children }) {
         nFTMarketContract,
         nFTContractInterface,
         nFTContractAddress,
+        moralisUser: user,
       }}
     >
       {children}

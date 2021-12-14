@@ -105,7 +105,7 @@ export default function CreateNFT(props) {
         NFTPrice,
         user.id.toNumber(),
         true,
-        date.getTime(),
+        date.getTime() / 1000,
         { value: listingPrice }
       );
     }

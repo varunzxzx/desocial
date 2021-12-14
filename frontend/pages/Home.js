@@ -4,11 +4,26 @@ import MyCard from "../component/Card";
 
 import { useMoralisDapp } from "../providers/MoralisDappProvider/MoralisDappProvider";
 import { ethers } from "ethers";
-import { LoaderScreen } from "react-native-ui-lib";
+import {
+  LoaderScreen,
+  Colors,
+  Dialog,
+  View,
+  TextField,
+  Button,
+} from "react-native-ui-lib";
+import { useTheme } from "@react-navigation/native";
 
 function Home(props) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [price, setPrice] = useState("0");
+  const [nft, setNft] = useState({});
+  const [bidding, setBidding] = useState(false);
+
+  const user = props.route.params.user;
+
   const {
     nFTMarketContract,
     userContract,
@@ -39,6 +54,8 @@ function Home(props) {
           image: meta.image,
           name: meta.name,
           description: meta.description,
+          isAuction: i.isAuction,
+          sellDate: i.sellDate,
         };
       })
     );
@@ -49,13 +66,17 @@ function Home(props) {
   }, []);
 
   const [refreshing, setRefreshing] = React.useState(false);
-
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     fetchPosts().then(() => setRefreshing(false));
   }, []);
 
   async function buyNFT(nft) {
+    if (nft.isAuction) {
+      setNft(nft);
+      setDialogOpen(true);
+      return;
+    }
     setLoading(true);
     const price = ethers.utils.parseUnits(nft.price.toString(), "ether");
     const transaction = await nFTMarketContract.populateTransaction.createMarketSale(
@@ -70,11 +91,27 @@ function Home(props) {
     setLoading(false);
   }
 
+  async function placeBid() {
+    setBidding(true);
+    const price1 = ethers.utils.parseUnits(price, "ether");
+    console.log(price1);
+    const transaction = await nFTMarketContract.populateTransaction.createBid(
+      nft.itemId,
+      price1,
+      user.uAddress,
+      { value: price1 }
+    );
+    await sendTransaction(transaction);
+    setBidding(false);
+  }
+
   return (
     <Layout {...props} refreshing={refreshing} onRefresh={onRefresh}>
-      {posts.map((post, i) => (
-        <MyCard key={i} post={post} buyNFT={buyNFT} />
-      ))}
+      {!loading &&
+        !bidding &&
+        posts.map((post, i) => (
+          <MyCard key={i} post={post} buyNFT={buyNFT} {...props} />
+        ))}
       {loading && (
         <LoaderScreen
           backgroundColor="rgba(255,255,255,0.9)"
@@ -83,8 +120,40 @@ function Home(props) {
           overlay
         />
       )}
+      {bidding && (
+        <LoaderScreen
+          backgroundColor="rgba(255,255,255,0.9)"
+          color="#6356E5"
+          message="Placing Bid..."
+          overlay
+        />
+      )}
+      <Dialog
+        visible={dialogOpen}
+        onDismiss={() => setDialogOpen(false)}
+        containerStyle={styles.dialog}
+      >
+        <View marginT-20 marginH-20 marginB-10>
+          <TextField
+            placeholder="e.g. 1.493"
+            title="Enter bid..."
+            onChangeText={(text) => setPrice(text)}
+          />
+          <Button
+            title="Place Bid"
+            onPress={placeBid}
+            label="Place Bid"
+          ></Button>
+        </View>
+      </Dialog>
     </Layout>
   );
 }
+
+const styles = {
+  dialog: {
+    backgroundColor: Colors.white,
+  },
+};
 
 export default Home;

@@ -33,7 +33,7 @@ contract NFTMarket is ReentrancyGuard {
     struct Bid {
         uint256 itemId;
         uint256 bid;
-        address buyer;
+        address payable buyer;
     }
 
     mapping(uint256 => MarketItem) private idToMarketItem;
@@ -140,7 +140,7 @@ contract NFTMarket is ReentrancyGuard {
             require(bid >= item.price, "Bid is less than min. price");
         }
 
-        idToBid[itemId].push(Bid(itemId, bid, buyer));
+        idToBid[itemId].push(Bid(itemId, bid, payable(buyer)));
 
         return idToBid[itemId];
     }
@@ -149,7 +149,7 @@ contract NFTMarket is ReentrancyGuard {
         Bid[] memory bids = idToBid[itemId];
         MarketItem memory item = idToMarketItem[itemId];
         require(item.sold == false, "Item already sold");
-        require(item.sellDate >= block.timestamp, "Auction has not ended yet");
+        require(item.sellDate < block.timestamp, "Auction has not ended yet");
         // sell to highest bidder
         Bid memory highestBid = bids[bids.length - 1];
         item.seller.transfer(highestBid.bid);

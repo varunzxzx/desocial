@@ -21,13 +21,6 @@ Assets.loadAssetsGroup("logos", {
   eth_logo: require("../assets/logos/ethereum_logo.png"),
 });
 
-const styles = {
-  dialog: {
-    backgroundColor: Colors.white,
-    height: "95%",
-  },
-};
-
 class Layout extends Component {
   constructor(props) {
     super(props);
@@ -74,9 +67,6 @@ class Layout extends Component {
           </View>
           <View margin-10>{this.props.children}</View>
           {/* <StatusBar hidden={true} /> */}
-          {/* <Dialog visible={dialogOpen} onDismiss={this.toggleDialog} containerStyle={styles.dialog}>
-          <CreateNFT />
-        </Dialog> */}
         </ScrollView>
       </SafeAreaView>
     );

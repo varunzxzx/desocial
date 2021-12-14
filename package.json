@@ -39,6 +39,7 @@
     "react-native-dotenv": "2.4.3",
     "react-native-gesture-handler": "~1.10.2",
     "react-native-get-random-values": "1.5.0",
+    "react-native-image-filter": "^1.0.3",
     "react-native-image-picker": "^4.3.0",
     "react-native-localhost": "1.0.0",
     "react-native-pager-view": "^5.4.9",
@@ -143,15 +144,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "husky": {
-    "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook",
-      "pre-commit": "lint-staged",
-      "pre-push": "test"
-    }
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": "eslint --fix --ext '.ts,.tsx,.js,.jsx' -c .eslintrc.json"
   }
 }

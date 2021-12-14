@@ -38,6 +38,7 @@ function Profile(props) {
     { key: "first", title: "My Post" },
     { key: "second", title: "My Collection" },
   ]);
+  const [profile_pic, setProfilePic] = React.useState(getProfilePic());
 
   const { nFTMarketContract, nFTContract, userContract } = useMoralisDapp();
 
@@ -154,7 +155,7 @@ function Profile(props) {
             resizeMode: "contain",
             borderRadius: 10500,
           }}
-          source={getProfilePic()}
+          source={profile_pic}
         />
         {/* Post */}
         <View center>

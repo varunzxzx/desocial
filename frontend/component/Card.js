@@ -8,7 +8,7 @@ import {
   Button,
   PageControlPosition,
 } from "react-native-ui-lib";
-import { ImageBackground } from "react-native";
+import { ImageBackground, Pressable } from "react-native";
 
 import { default as FaIcon } from "react-native-vector-icons/FontAwesome";
 import { default as AntIcon } from "react-native-vector-icons/AntDesign";
@@ -24,7 +24,15 @@ class MyCard extends Component {
       post: this.props.post,
       width: 0,
       height: 0,
+      liked: false,
+      profile_pic: getProfilePic(),
     };
+
+    this.likePost = this.likePost.bind(this);
+  }
+
+  likePost() {
+    this.setState({ liked: !this.state.liked });
   }
 
   componentDidMount() {
@@ -34,7 +42,7 @@ class MyCard extends Component {
         width = 380;
       } else {
         if (height > 400) {
-          height = 400;
+          height = 300;
           width = 200;
         }
       }
@@ -43,7 +51,7 @@ class MyCard extends Component {
   }
 
   render() {
-    const { post, width, height } = this.state;
+    const { post, width, height, liked } = this.state;
     if (!post) return <Text>Loading...</Text>;
     return (
       <View marginB-10>
@@ -56,7 +64,7 @@ class MyCard extends Component {
                 resizeMode: "contain",
                 borderRadius: 10500,
               }}
-              source={getProfilePic()}
+              source={this.state.profile_pic}
             />
             <Text
               style={{
@@ -69,28 +77,43 @@ class MyCard extends Component {
               {post.sellerName}
             </Text>
           </View>
-          <ImageBackground
-            source={{ uri: post.image }}
-            resizeMode="cover"
-            style={{ justifyContent: "center" }}
-            blurRadius={5}
+          <Pressable
+            onPress={() =>
+              this.props.navigation.navigate("MyStack", {
+                screen: "Post",
+                post,
+                buyNFT: this.props.buyNFT,
+              })
+            }
           >
-            <Card.Section
-              center
-              imageSource={{
-                uri: post.image,
-              }}
-              imageStyle={{
-                height,
-                width,
-                resizeMode: "contain",
-                borderWidth: 1,
-              }}
-            />
-          </ImageBackground>
+            <ImageBackground
+              source={{ uri: post.image }}
+              resizeMode="cover"
+              style={{ justifyContent: "center" }}
+              blurRadius={5}
+            >
+              <Card.Section
+                center
+                imageSource={{
+                  uri: post.image,
+                }}
+                imageStyle={{
+                  height,
+                  width,
+                  resizeMode: "contain",
+                  borderWidth: 1,
+                }}
+              />
+            </ImageBackground>
+          </Pressable>
 
           <View row padding-10 paddingL-15>
-            <FaIcon name="heart-o" size={30} solid />
+            <FaIcon
+              name={!liked ? "heart-o" : "heart"}
+              size={30}
+              solid
+              onPress={this.likePost}
+            />
             <AntIcon
               style={{ marginLeft: 20 }}
               name="sharealt"
@@ -145,7 +168,7 @@ class MyCard extends Component {
               width: 25,
               height: 25,
             }}
-            label="Buy now"
+            label={post.isAuction ? "Place Bid" : "Buy now"}
             labelStyle={{ fontWeight: "bold", fontSize: 16 }}
           />
         </Card>

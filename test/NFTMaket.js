@@ -44,7 +44,7 @@ contract("NFTMarket", function (accounts) {
       auctionPrice,
       user.id,
       true,
-      1638489600,
+      1639033358,
       {
         value: listingPrice,
       }
@@ -92,6 +92,7 @@ contract("NFTMarket", function (accounts) {
     console.log("<<<<< BIDS >>>>>", data);
 
     // Selling Item for Max. bid
-    await market.createBidSale(2);
+    const tx = await debug(market.createBidSale(2));
+    console.log("tx", tx);
   });
 });
